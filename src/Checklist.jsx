@@ -80,7 +80,7 @@ const Checklist = () => {
           <input type="text" name="nombre" placeholder="Nombre" onChange={handleChange} style={styles.input} />
           <input type="text" name="ubicacion" placeholder="Ubicación" onChange={handleChange} style={styles.input} />
           <input type="date" name="fecha" onChange={handleChange} style={styles.input} />
-          <input type="text" name="modelo" placeholder="Modelo del equipo" onChange={handleChange} style={styles.input} />
+          <input type="text" name="Ingeniero" placeholder="Ingeniero" onChange={handleChange} style={styles.input} />
         </div>
       );
     }
@@ -146,7 +146,7 @@ const Checklist = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.header}>Lista de Verificación Rayos X (v2)</h1>
+      <h1 style={styles.header}>Lista de Verificación previo a instalacion</h1>
       {renderPaso()}
       <div style={styles.buttonContainer}>
         {step > 1 && step <= 5 && (
