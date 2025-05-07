@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Bar } from 'react-chartjs-2';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import React, { useState, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,215 +9,165 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
+  Legend,
+} from "chart.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Checklist = () => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({});
-  const [observaciones, setObservaciones] = useState('');
-
-  const [respuestas, setRespuestas] = useState({});
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-    if (step === 1) {
-      setFormData({ ...formData, [name]: val });
-    } else {
-      setRespuestas({ ...respuestas, [name]: val });
-    }
-  };
-
-  const exportarPDF = () => {
-    const input = document.getElementById('checklist-pdf');
-    html2canvas(input).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Checklist_${formData.nombre || 'cliente'}.pdf`);
-    });
-  };
+  const [formData, setFormData] = useState({ nombre: "", ubicacion: "", fecha: "", modelo: "" });
+  const [responses, setResponses] = useState({});
+  const [observaciones, setObservaciones] = useState("");
+  const contentRef = useRef();
 
   const preguntas = {
     2: [
-      { name: 'area_climatizada', label: '¿Área climatizada? (22 ±2 °C)' },
-      { name: 'libre_polvo', label: '¿Libre de polvo, humedad y vibraciones?' },
-      { name: 'paredes_piso', label: '¿Paredes y pisos lavables y sin grietas?' },
-      { name: 'puerta_acceso', label: '¿Puerta de acceso ≥ 1.20 m de ancho?' },
-      { name: 'iluminacion', label: '¿Iluminación ≥ 300 lux?' },
+      { id: "paredes", texto: "¿Las paredes están recubiertas con pintura epóxica lavable?" },
+      { id: "piso", texto: "¿El piso es nivelado, antideslizante y fácil de limpiar?" },
+      { id: "puerta", texto: "¿Las puertas permiten el acceso del equipo sin obstrucciones?" },
+      { id: "ventilacion", texto: "¿La sala cuenta con sistema de ventilación adecuado?" },
+      { id: "iluminacion", texto: "¿La iluminación es suficiente y sin reflejos directos?" },
     ],
     3: [
-      { name: 'tierra_fisica', label: '¿Cuenta con tierra física (≤ 1 Ω)?' },
-      { name: 'polaridad_correcta', label: '¿Polaridad correcta?' },
-      { name: 'voltaje_estable', label: '¿Voltaje estable dentro del rango del equipo?' },
-      { name: 'contacto_exclusivo', label: '¿Contacto eléctrico exclusivo para el equipo?' },
-      { name: 'no_multicontacto', label: '¿Evita el uso de multicontactos?' },
+      { id: "tierra", texto: "¿Existe una toma a tierra física con resistencia menor a 5 ohms?" },
+      { id: "polos", texto: "¿Los contactos tienen polos fase, neutro y tierra claramente identificados?" },
+      { id: "voltaje", texto: "¿El voltaje disponible corresponde a las especificaciones del equipo?" },
+      { id: "interruptor", texto: "¿Hay un interruptor general exclusivo para el equipo en la sala?" },
     ],
     4: [
-      { name: 'estructura_nivelada', label: '¿Estructura nivelada y sin daños visibles?' },
-      { name: 'ruedas_bloqueadas', label: '¿Ruedas bloqueadas correctamente?' },
-      { name: 'sin_objetos', label: '¿Área sin objetos que obstruyan el acceso o el equipo?' },
-      { name: 'espacio_operacion', label: '¿Espacio suficiente para operación y mantenimiento?' },
-      { name: 'instalacion_estable', label: '¿Instalación estable sin riesgo de vuelco?' },
-    ]
+      { id: "soporte", texto: "¿El soporte o estructura soporta el peso del equipo?" },
+      { id: "espacio_operacion", texto: "¿Existe espacio suficiente para operar sin obstrucciones?" },
+      { id: "movilidad", texto: "¿La movilidad del equipo está garantizada dentro de la sala?" },
+      { id: "alineacion", texto: "¿Se cuenta con referencias de alineación para la instalación precisa?" },
+    ],
   };
 
-  const totalPreguntas = Object.values(preguntas).flat().length;
-  const respuestasValidas = Object.values(respuestas).filter(Boolean).length;
-  const porcentaje = Math.round((respuestasValidas / totalPreguntas) * 100);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-  const renderPaso = () => {
-    if (step === 1) {
-      return (
-        <div style={styles.section}>
-          <h2 style={styles.title}>Datos del Cliente</h2>
-          <input type="text" name="nombre" placeholder="Nombre" onChange={handleChange} style={styles.input} />
-          <input type="text" name="ubicacion" placeholder="Ubicación" onChange={handleChange} style={styles.input} />
-          <input type="date" name="fecha" onChange={handleChange} style={styles.input} />
-          <input type="text" name="Ingeniero" placeholder="Ingeniero" onChange={handleChange} style={styles.input} />
-        </div>
-      );
-    }
-    if (step >= 2 && step <= 4) {
-      return (
-        <div style={styles.section}>
-          <h2 style={styles.title}>{
-            step === 2 ? 'Infraestructura' :
-            step === 3 ? 'Seguridad Eléctrica' : 'Mecánica'
-          }</h2>
-          {preguntas[step].map((pregunta) => (
-            <div key={pregunta.name} style={styles.checkboxContainer}>
-              <label>
-                <input
-                  type="checkbox"
-                  name={pregunta.name}
-                  checked={!!respuestas[pregunta.name]}
-                  onChange={handleChange}
-                /> {pregunta.label}
-              </label>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (step === 5) {
-      return (
-        <div id="checklist-pdf" style={styles.section}>
-          <h2 style={styles.title}>Resultado del Checklist</h2>
-          <p style={{ color: porcentaje >= 80 ? 'green' : 'red' }}>
-            {porcentaje >= 80 ? '✅ Viable para instalación' : '❌ No viable para instalación'} ({porcentaje}%)
-          </p>
-          <Bar
-            data={{
-              labels: ['Viabilidad'],
-              datasets: [
-                {
-                  label: '% Cumplido',
-                  data: [porcentaje],
-                  backgroundColor: porcentaje >= 80 ? 'green' : 'red'
-                }
-              ]
-            }}
-            options={{
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  max: 100
-                }
-              }
-            }}
-          />
-          <textarea
-            placeholder="Observaciones"
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-            style={styles.textarea}
-          ></textarea>
-        </div>
-      );
-    }
+  const handleCheck = (id) => {
+    setResponses((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const score = Math.round(
+    (Object.values(responses).filter(Boolean).length /
+      Object.values(preguntas).flat().length) * 100
+  );
+
+  const data = {
+    labels: ["Resultado del Checklist"],
+    datasets: [
+      {
+        label: "% Cumplido",
+        data: [score],
+        backgroundColor: score >= 80 ? "#4caf50" : "#f44336",
+      },
+    ],
+  };
+
+  const downloadPDF = () => {
+    html2canvas(contentRef.current).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF();
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("checklist-rayosx.pdf");
+    });
+  };
+
+  const enviarAGoogleSheets = async () => {
+    const payload = {
+      ...formData,
+      porcentaje: score,
+      resultado: score >= 80 ? "Viable" : "No viable",
+      observaciones: observaciones,
+    };
+
+    await fetch("https://script.google.com/macros/s/AKfycbwxxxxxxxxxxxxxx/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    alert("¡Checklist enviado correctamente!");
+  };
+
+  const cardStyle = {
+    background: "#fff",
+    padding: "25px",
+    marginBottom: "25px",
+    borderRadius: "15px",
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)"
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    marginBottom: "10px"
+  };
+
+  const buttonStyle = {
+    padding: "10px 20px",
+    backgroundColor: "#007bff",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    marginRight: "10px",
+    transition: "background-color 0.3s"
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.header}>Lista de Verificación previo a instalacion</h1>
-      {renderPaso()}
-      <div style={styles.buttonContainer}>
-        {step > 1 && step <= 5 && (
-          <button onClick={() => setStep(step - 1)} style={styles.button}>Anterior</button>
-        )}
-        {step < 5 && (
-          <button onClick={() => setStep(step + 1)} style={styles.button}>Siguiente</button>
-        )}
-        {step === 5 && (
-          <button onClick={exportarPDF} style={styles.button}>Descargar PDF</button>
-        )}
-      </div>
+    <div ref={contentRef} style={{ maxWidth: "800px", margin: "40px auto", fontFamily: "'Segoe UI', sans-serif" }}>
+      <h1 style={{ textAlign: "center", color: "#333" }}>🩻 Checklist Preinstalación Sala de Rayos X</h1>
+
+      {step === 1 && (
+        <div style={cardStyle}>
+          <h2>📋 Datos del cliente</h2>
+          <input style={inputStyle} type="text" name="nombre" placeholder="Nombre del cliente" value={formData.nombre} onChange={handleChange} />
+          <input style={inputStyle} type="text" name="ubicacion" placeholder="Ubicación" value={formData.ubicacion} onChange={handleChange} />
+          <input style={inputStyle} type="date" name="fecha" value={formData.fecha} onChange={handleChange} />
+          <input style={inputStyle} type="text" name="modelo" placeholder="Modelo del equipo" value={formData.modelo} onChange={handleChange} />
+          <button style={buttonStyle} onClick={() => setStep(2)}>Siguiente</button>
+        </div>
+      )}
+
+      {step >= 2 && step <= 4 && (
+        <div style={cardStyle}>
+          <h2>{step === 2 ? "🏗 Infraestructura" : step === 3 ? "⚡ Seguridad eléctrica" : "🛠 Mecánica"}</h2>
+          {preguntas[step].map((p) => (
+            <label key={p.id} style={{ display: "block", marginBottom: "12px", fontSize: "15px" }}>
+              <input type="checkbox" checked={!!responses[p.id]} onChange={() => handleCheck(p.id)} style={{ marginRight: "10px" }} />
+              {p.texto}
+            </label>
+          ))}
+          <button style={buttonStyle} onClick={() => setStep(step + 1)}>Siguiente</button>
+        </div>
+      )}
+
+      {step === 5 && (
+        <div style={cardStyle}>
+          <h2>📊 Resumen Final</h2>
+          <Bar data={data} />
+          <p style={{ marginTop: "10px" }}><strong>Resultado:</strong> {score}% - {score >= 80 ? "✅ Viable para instalación" : "❌ No viable aún"}</p>
+          <textarea style={{ ...inputStyle, height: "100px" }} placeholder="Observaciones..." value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
+          <div style={{ marginTop: "15px" }}>
+            <button style={buttonStyle} onClick={downloadPDF}>📥 Descargar PDF</button>
+            <button style={{ ...buttonStyle, backgroundColor: "#28a745" }} onClick={enviarAGoogleSheets}>📤 Enviar a Google Sheets</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const styles = {
-  container: {
-    maxWidth: '700px',
-    margin: '40px auto',
-    padding: '30px',
-    border: '1px solid #ddd',
-    borderRadius: '10px',
-    fontFamily: 'Arial, sans-serif'
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '20px'
-  },
-  section: {
-    marginBottom: '20px'
-  },
-  title: {
-    fontSize: '20px',
-    marginBottom: '10px'
-  },
-  input: {
-    display: 'block',
-    width: '100%',
-    marginBottom: '10px',
-    padding: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc'
-  },
-  checkboxContainer: {
-    marginBottom: '10px'
-  },
-  textarea: {
-    width: '100%',
-    height: '100px',
-    padding: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-    marginTop: '20px'
-  },
-  buttonContainer: {
-    display: 'flex',
-    justifyContent: 'space-between'
-  },
-  button: {
-    padding: '10px 20px',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer'
-  }
-};
-
 export default Checklist;
-
-
 
 
