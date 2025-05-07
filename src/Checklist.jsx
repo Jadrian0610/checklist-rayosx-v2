@@ -16,7 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const Checklist = () => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ nombre: "", ubicacion: "", fecha: "", modelo: "" });
+  const [formData, setFormData] = useState({ nombre: "", ubicacion: "", fecha: "", Ingeniero: "" });
   const [responses, setResponses] = useState({});
   const [observaciones, setObservaciones] = useState("");
   const contentRef = useRef();
