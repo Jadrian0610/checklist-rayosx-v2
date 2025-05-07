@@ -87,7 +87,7 @@ const Checklist = () => {
       observaciones: observaciones,
     };
 
-    await fetch("https://script.google.com/macros/s/AKfycbwxxxxxxxxxxxxxx/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbxrTdc2mt_YuVXDD5a9WWMRqSVHueOjGeFRtk_rc9eXfPV6u6NrSKoleo2SUq4bIE8G/exec", {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -134,7 +134,7 @@ const Checklist = () => {
           <input style={inputStyle} type="text" name="nombre" placeholder="Nombre del cliente" value={formData.nombre} onChange={handleChange} />
           <input style={inputStyle} type="text" name="ubicacion" placeholder="Ubicación" value={formData.ubicacion} onChange={handleChange} />
           <input style={inputStyle} type="date" name="fecha" value={formData.fecha} onChange={handleChange} />
-          <input style={inputStyle} type="text" name="modelo" placeholder="Modelo del equipo" value={formData.modelo} onChange={handleChange} />
+          <input style={inputStyle} type="text" name="Ingeniero" placeholder="Ingeniero" value={formData.modelo} onChange={handleChange} />
           <button style={buttonStyle} onClick={() => setStep(2)}>Siguiente</button>
         </div>
       )}
