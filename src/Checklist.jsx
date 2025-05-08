@@ -16,7 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const Checklist = () => {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ nombre: "", ubicacion: "", fecha: "", Ingeniero: "" });
+  const [formData, setFormData] = useState({ nombre: "", ubicacion: "", fecha: "", ingeniero: "" });
   const [responses, setResponses] = useState({});
   const [observaciones, setObservaciones] = useState("");
   const contentRef = useRef();
@@ -44,7 +44,8 @@ const Checklist = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleCheck = (id) => {
@@ -134,7 +135,7 @@ const Checklist = () => {
           <input style={inputStyle} type="text" name="nombre" placeholder="Nombre del cliente" value={formData.nombre} onChange={handleChange} />
           <input style={inputStyle} type="text" name="ubicacion" placeholder="Ubicación" value={formData.ubicacion} onChange={handleChange} />
           <input style={inputStyle} type="date" name="fecha" value={formData.fecha} onChange={handleChange} />
-          <input style={inputStyle} type="text" name="Ingeniero" placeholder="Ingeniero" value={formData.modelo} onChange={handleChange} />
+          <input style={inputStyle} type="text" name="ingeniero" placeholder="Nombre del ingeniero" value={formData.ingeniero} onChange={handleChange} />
           <button style={buttonStyle} onClick={() => setStep(2)}>Siguiente</button>
         </div>
       )}
@@ -169,5 +170,6 @@ const Checklist = () => {
 };
 
 export default Checklist;
+
 
 
